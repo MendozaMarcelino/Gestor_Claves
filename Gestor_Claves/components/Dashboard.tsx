@@ -43,6 +43,9 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
   const [searchQuery, setSearchQuery] = useState("")
   const [visiblePasswords, setVisiblePasswords] = useState<Set<number>>(new Set())
   const [notification, setNotification] = useState<{message: string, type: 'success' | 'error' | 'info'} | null>(null)
+  const [showDeleteModal, setShowDeleteModal] = useState(false)
+  const [passwordToDelete, setPasswordToDelete] = useState<{id: number, site: string} | null>(null)
+  const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
 
   const getPasswordStrength = (password: string) => {
     let score = 0
@@ -112,10 +115,38 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
 
   const deletePassword = (id: number) => {
     const password = savedPasswords.find(p => p.id === id)
-    if (confirm("¿Estás seguro de que quieres eliminar esta contraseña?")) {
-      setSavedPasswords(savedPasswords.filter((item) => item.id !== id))
-      showNotification(`Contraseña de ${password?.site} eliminada`, 'info')
+    if (password) {
+      setPasswordToDelete({id, site: password.site})
+      setShowDeleteModal(true)
     }
+  }
+
+  const confirmDelete = () => {
+    if (passwordToDelete) {
+      setSavedPasswords(savedPasswords.filter((item) => item.id !== passwordToDelete.id))
+      showNotification(`Contraseña de ${passwordToDelete.site} eliminada`, 'info')
+      setShowDeleteModal(false)
+      setPasswordToDelete(null)
+    }
+  }
+
+  const cancelDelete = () => {
+    setShowDeleteModal(false)
+    setPasswordToDelete(null)
+  }
+
+  const deleteAllPasswords = () => {
+    setShowDeleteAllModal(true)
+  }
+
+  const confirmDeleteAll = () => {
+    setSavedPasswords([])
+    showNotification('Todas las contraseñas han sido eliminadas', 'info')
+    setShowDeleteAllModal(false)
+  }
+
+  const cancelDeleteAll = () => {
+    setShowDeleteAllModal(false)
   }
 
   const togglePasswordVisibility = (id: number) => {
@@ -137,6 +168,72 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
+      {/* Modal de confirmación de eliminación de contraseña */}
+      {showDeleteModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-2xl border-2 border-red-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(0, 0, 0, 1)' }}>
+            <div className="mb-6 flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-md">
+                <Trash2 className="h-8 w-8 text-black" />
+              </div>
+            </div>
+            <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+              Confirmar Eliminación
+            </h2>
+            <p className="mb-6 text-center text-muted-foreground">
+              ¿Estás seguro de que quieres eliminar la contraseña de <strong>{passwordToDelete?.site}</strong>?
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDelete}
+                className="flex-1 rounded-lg border border-border bg-background px-4 py-3 font-semibold text-foreground shadow-md transition-all hover:bg-muted"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDelete}
+                className="flex-1 rounded-lg bg-red-500 px-4 py-3 font-semibold text-white shadow-md transition-all hover:bg-red-600 hover:shadow-lg"
+              >
+                Eliminar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal de confirmación de eliminación de todas las contraseñas */}
+      {showDeleteAllModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+          <div className="rounded-2xl border-2 border-red-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(0, 0, 0, 1)' }}>
+            <div className="mb-6 flex justify-center">
+              <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-md">
+                <Trash2 className="h-8 w-8 text-black" />
+              </div>
+            </div>
+            <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+              ¡Eliminar Todas las Contraseñas!
+            </h2>
+            <p className="mb-6 text-center text-muted-foreground">
+              ¿Estás seguro de que quieres eliminar <strong>TODAS</strong> las contraseñas? Esta acción no se puede deshacer.
+            </p>
+            <div className="flex gap-3">
+              <button
+                onClick={cancelDeleteAll}
+                className="flex-1 rounded-lg border border-border bg-background px-4 py-3 font-semibold text-foreground shadow-md transition-all hover:bg-muted"
+              >
+                Cancelar
+              </button>
+              <button
+                onClick={confirmDeleteAll}
+                className="flex-1 rounded-lg bg-red-500 px-4 py-3 font-semibold text-white shadow-md transition-all hover:bg-red-600 hover:shadow-lg"
+              >
+                Eliminar Todas
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* SISTEMA DE NOTIFICACIONES MODALES - Esquina superior derecha */}
       {notification && (
         <div className="fixed top-4 right-4 z-50 animate-in slide-in-from-right duration-300">
@@ -438,12 +535,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
               <div className="rounded-lg border-2 border-border bg-background p-4 transition-all duration-300 hover:border-red-400 cursor-pointer" onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.93)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
                 <h4 className="mb-4 text-sm font-medium text-foreground"> Seguridad</h4>
                 <button 
-                  onClick={() => {
-                    if (confirm('¿Estás seguro de que quieres eliminar TODAS las contraseñas? Esta acción no se puede deshacer.')) {
-                      setSavedPasswords([])
-                      alert('Todas las contraseñas han sido eliminadas.')
-                    }
-                  }}
+                  onClick={deleteAllPasswords}
                   className="flex w-full items-center justify-center gap-2 rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700"
                 >
                   <Trash2 className="h-4 w-4" />

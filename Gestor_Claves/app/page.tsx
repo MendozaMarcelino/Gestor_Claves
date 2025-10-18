@@ -10,6 +10,7 @@ export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isRegisterMode, setIsRegisterMode] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -77,12 +78,7 @@ export default function Page() {
 
       const data = await response.json()
       if (data.success) {
-        alert("Usuario registrado exitosamente")
-        setIsRegisterMode(false)
-        setUsername("")
-        setPassword("")
-        setConfirmPassword("")
-        setPasswordHint("")
+        setShowSuccessModal(true)
       } else {
         alert(data.error || "Error al registrar usuario")
       }
@@ -107,6 +103,15 @@ export default function Page() {
   const handleForgotPassword = (e: React.FormEvent) => {
     e.preventDefault()
     alert("Funcionalidad de recuperación de contraseña aún no implementada en API")
+  }
+
+  const handleCloseSuccessModal = () => {
+    setShowSuccessModal(false)
+    setIsRegisterMode(false)
+    setUsername("")
+    setPassword("")
+    setConfirmPassword("")
+    setPasswordHint("")
   }
 
   //  Pantalla de recuperar contraseña
@@ -155,6 +160,33 @@ export default function Page() {
   if (!isLoggedIn) {
     return (
       <div className="flex min-h-screen items-center justify-center px-4" style={{ background: 'linear-gradient(-45deg, #0a0a0a, #0a0a0a, #0a0a0a, #0a0a0a)', backgroundSize: '400% 400%' }}>
+        {/* MODAL DE MENSAJE DE EXITO CUANDO SE CREA UN USUARIO */}
+        {showSuccessModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-md">
+                  <Shield className="h-8 w-8 text-primary-foreground" />
+                </div>
+              </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+                ¡Registro Exitoso!
+              </h2>
+              <p className="mb-6 text-center text-muted-foreground">
+                Tu cuenta ha sido creada correctamente. Ya puedes iniciar sesión.
+              </p>
+              <button
+                onClick={handleCloseSuccessModal}
+                className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:brightness-110"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+
+        
         <form onSubmit={handleLogin} className="w-full max-w-md">
           <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
             <div className="mb-6 flex justify-center">
