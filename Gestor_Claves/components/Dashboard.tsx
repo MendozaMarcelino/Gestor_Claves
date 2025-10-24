@@ -46,6 +46,7 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [passwordToDelete, setPasswordToDelete] = useState<{id: number, site: string} | null>(null)
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
+  const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false)
 
   const getPasswordStrength = (password: string) => {
     let score = 0
@@ -307,18 +308,66 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
             </div>
           </div>
 
-          <div className="rounded-lg border-2 border-border bg-background p-4 transition-all duration-300 hover:border-red-400 cursor-pointer" onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(4, 4, 4, 0.93)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
-            <div className="mb-3 flex items-center gap-3">
-              <div className="flex h-25 w-15 items-center justify-center rounded-lg bg-red-500/40">
-                <Grid3X3 className="h-5 w-5 text-black-500" />
-              </div>
-              <div>
-                <p className="text-xs text-muted-foreground">Categorías</p>
-                <p className="text-2xl font-semibold text-foreground">
-                  {new Set(savedPasswords.map((p) => p.category)).size}
-                </p>
+          {/* CARD DE CATEGORÍAS DESPLEGABLE - Click para ver distribución de categorías */} 
+          <div className="relative">
+            <div 
+              className="rounded-lg border-2 border-border bg-background p-4 transition-all duration-300 hover:border-red-400 cursor-pointer" 
+              onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(4, 4, 4, 0.93)'} 
+              onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
+              onClick={() => setShowCategoriesDropdown(!showCategoriesDropdown)}
+            >
+              <div className="mb-3 flex items-center gap-3">
+                <div className="flex h-25 w-15 items-center justify-center rounded-lg bg-red-500/40">
+                  <Grid3X3 className="h-5 w-5 text-black-500" />
+                </div>
+                <div className="flex-1">
+                  <p className="text-xs text-muted-foreground">Categorías</p>
+                  <p className="text-2xl font-semibold text-foreground">
+                    {new Set(savedPasswords.map((p) => p.category)).size}
+                  </p>
+                </div>
+                <div className={`transition-transform duration-200 ${showCategoriesDropdown ? 'rotate-180' : ''}`}>
+                  <svg className="h-4 w-4 text-muted-foreground" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                  </svg>
+                </div>
               </div>
             </div>
+            
+            {/* Dropdown de categorías */}
+            {showCategoriesDropdown && (
+              <div className="absolute top-full left-0 right-0 z-10 mt-2 rounded-lg border-2 border-border bg-card shadow-lg">
+                <div className="p-4">
+                  <h4 className="mb-3 text-sm font-semibold text-foreground">Distribución por Categorías</h4>
+                  <div className="space-y-3">
+                    {["Social", "Trabajo", "Bancario", "Entretenimiento", "Otros"].map((category) => {
+                      const count = savedPasswords.filter((p) => p.category === category).length
+                      const percentage = savedPasswords.length > 0 ? Math.round((count / savedPasswords.length) * 100) : 0
+                      
+                      if (count === 0) return null
+                      
+                      return (
+                        <div key={category} className="flex items-center justify-between p-2 rounded-lg bg-background hover:bg-accent transition-colors">
+                          <div className="flex items-center gap-3">
+                            <div className="h-3 w-3 rounded-full bg-primary"></div>
+                            <span className="text-sm font-medium text-foreground">{category}</span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-sm font-semibold text-foreground">{count}</span>
+                            <span className="ml-1 text-xs text-muted-foreground">({percentage}%)</span>
+                          </div>
+                        </div>
+                      )
+                    })}
+                    {savedPasswords.length === 0 && (
+                      <div className="text-center py-4">
+                        <p className="text-sm text-muted-foreground">No hay contraseñas guardadas</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="rounded-lg border-2 border-border bg-background p-4 transition-all duration-300 hover:border-red-400 cursor-pointer" onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(4, 4, 4, 0.93)'} onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}>
