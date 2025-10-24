@@ -20,6 +20,7 @@ import {
   Search,
   Eye,
   EyeOff,
+  Edit,
 } from "lucide-react"
 
 interface DashboardProps {
@@ -47,6 +48,9 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
   const [passwordToDelete, setPasswordToDelete] = useState<{id: number, site: string} | null>(null)
   const [showDeleteAllModal, setShowDeleteAllModal] = useState(false)
   const [showCategoriesDropdown, setShowCategoriesDropdown] = useState(false)
+  const [editingPassword, setEditingPassword] = useState<{id: number, site: string, username: string, password: string, category: string} | null>(null)
+  const [showEditForm, setShowEditForm] = useState(false)
+  const [showNewDropdown, setShowNewDropdown] = useState(false)
 
   const getPasswordStrength = (password: string) => {
     let score = 0
@@ -158,6 +162,30 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
       newVisible.add(id)
     }
     setVisiblePasswords(newVisible)
+  }
+
+  const editPassword = (id: number) => {
+    const password = savedPasswords.find(p => p.id === id)
+    if (password) {
+      setEditingPassword(password)
+      setShowEditForm(true)
+    }
+  }
+
+  const updatePassword = () => {
+    if (editingPassword) {
+      setSavedPasswords(savedPasswords.map(item => 
+        item.id === editingPassword.id ? editingPassword : item
+      ))
+      setShowEditForm(false)
+      setEditingPassword(null)
+      showNotification(`Contraseña de ${editingPassword.site} actualizada exitosamente`, 'success')
+    }
+  }
+
+  const cancelEdit = () => {
+    setShowEditForm(false)
+    setEditingPassword(null)
   }
 
   const filteredPasswords = savedPasswords.filter(
@@ -407,15 +435,58 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
           </div>
         </div>
 
-        {/* Barra de acción */}
+        {/* BARRA DE ACCIÓN EN EL BOTON DE NUEVO DESPLEGABLE */}
         <div className="mb-6 flex flex-wrap items-center gap-3">
-          <button
-            onClick={() => setShowAddForm(true)}
-            className="flex items-center gap-2 rounded-lg bg-primary px-10 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
-          >
-            <Plus className="h-4 w-4" />
-            Nueva Contraseña
-          </button>
+          <div className="relative">
+            <button
+              onClick={() => setShowNewDropdown(!showNewDropdown)}
+              className="flex items-center gap-2 rounded-lg bg-primary px-10 py-2 text-sm font-medium text-primary-foreground transition-opacity hover:opacity-90"
+            >
+              <Plus className="h-4 w-4" />
+              Nuevo
+              <svg className={`h-4 w-4 transition-transform duration-200 ${showNewDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            
+            {/* Menú desplegable */}
+            {showNewDropdown && (
+              <div className="absolute top-full left-0 mt-2 w-48 rounded-lg border-2 border-border bg-card shadow-lg z-10">
+                <div className="p-2">
+                  <button
+                    onClick={() => {
+                      setShowAddForm(true)
+                      setShowNewDropdown(false)
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                  >
+                    <Plus className="h-4 w-4" />
+                    Nueva Contraseña
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Nueva Categoría')
+                      setShowNewDropdown(false)
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                  >
+                    <Grid3X3 className="h-4 w-4" />
+                    Nueva Categoría
+                  </button>
+                  <button
+                    onClick={() => {
+                      console.log('Nuevo Usuario')
+                      setShowNewDropdown(false)
+                    }}
+                    className="flex w-full items-center gap-2 rounded-lg px-3 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+                  >
+                    <User className="h-4 w-4" />
+                    Nuevo Usuario
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
           <button
             onClick={() => setShowReports(true)}
             className="flex items-center gap-2 rounded-lg border border-border bg-card px-10 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
@@ -542,6 +613,117 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
               </button>
               <button
                 onClick={() => setShowAddForm(false)}
+                className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                Cancelar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Formulario para editar contraseña desde la card */}
+        {showEditForm && editingPassword && (
+          <div className="mb-6 rounded-lg border border-border bg-card p-6 shadow-lg">
+            <div className="mb-6 flex items-center justify-between">
+              <h3 className="text-lg font-semibold text-foreground">Editar Contraseña</h3>
+              <button
+                onClick={cancelEdit}
+                className="flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
+              >
+                <X className="h-4 w-4" />
+              </button>
+            </div>
+
+            <div className="mb-6 grid gap-4 sm:grid-cols-2">
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground">Sitio Web/App</label>
+                <input
+                  type="text"
+                  placeholder="Ej: Facebook, Gmail"
+                  value={editingPassword.site}
+                  onChange={(e) => setEditingPassword({...editingPassword, site: e.target.value})}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground">Usuario/Email</label>
+                <input
+                  type="text"
+                  placeholder="Tu usuario o email"
+                  value={editingPassword.username}
+                  onChange={(e) => setEditingPassword({...editingPassword, username: e.target.value})}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground">Contraseña</label>
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Tu contraseña"
+                    value={editingPassword.password}
+                    onChange={(e) => setEditingPassword({...editingPassword, password: e.target.value})}
+                    className="flex-1 rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                  />
+                  <button
+                    onClick={() => {
+                      const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*"
+                      let password = ""
+                      for (let i = 0; i < 16; i++) {
+                        password += chars.charAt(Math.floor(Math.random() * chars.length))
+                      }
+                      setEditingPassword({...editingPassword, password})
+                    }}
+                    className="rounded-lg border border-border bg-card px-3 py-2 text-xs font-medium text-foreground transition-colors hover:bg-accent"
+                  >
+                    Generar
+                  </button>
+                </div>
+                {editingPassword.password && (
+                  <div className="mt-2 flex items-center gap-2">
+                    <div className="h-1 flex-1 overflow-hidden rounded-full bg-muted">
+                      <div
+                        className="h-full transition-all duration-300"
+                        style={{
+                          width: `${(getPasswordStrength(editingPassword.password).score / 9) * 100}%`,
+                          backgroundColor: getPasswordStrength(editingPassword.password).color,
+                        }}
+                      />
+                    </div>
+                    <span className="text-xs font-medium" style={{ color: getPasswordStrength(editingPassword.password).color }}>
+                      {getPasswordStrength(editingPassword.password).level}
+                    </span>
+                  </div>
+                )}
+              </div>
+
+              <div>
+                <label className="mb-2 block text-sm font-medium text-foreground">Categoría</label>
+                <select
+                  value={editingPassword.category}
+                  onChange={(e) => setEditingPassword({...editingPassword, category: e.target.value})}
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                >
+                  <option value="Social">Social</option>
+                  <option value="Trabajo">Trabajo</option>
+                  <option value="Bancario">Bancario</option>
+                  <option value="Entretenimiento">Entretenimiento</option>
+                  <option value="Otros">Otros</option>
+                </select>
+              </div>
+            </div>
+
+            <div className="flex gap-2">
+              <button
+                onClick={updatePassword}
+                className="rounded-lg bg-blue-500 px-4 py-2 text-sm font-medium text-white transition-opacity hover:opacity-90"
+              >
+                Actualizar
+              </button>
+              <button
+                onClick={cancelEdit}
                 className="rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
               >
                 Cancelar
@@ -777,13 +959,23 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
                   onMouseEnter={(e) => e.currentTarget.style.boxShadow = '0 0 15px rgba(0, 0, 0, 0.93)'}
                   onMouseLeave={(e) => e.currentTarget.style.boxShadow = 'none'}
                 >
-                  <button
-                    onClick={() => deletePassword(item.id)}
-                    className="absolute right-3 top-3 flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground opacity-0 transition-all hover:bg-destructive hover:text-destructive-foreground group-hover:opacity-100"
-                    title="Eliminar"
-                  >
-                    <Trash2 className="h-3.5 w-3.5" />
-                  </button>
+                  {/* Botones de acción - Editar y Eliminar */}
+                  <div className="absolute right-3 top-3 flex gap-1 opacity-0 transition-all group-hover:opacity-100">
+                    <button
+                      onClick={() => editPassword(item.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-blue-500 hover:text-white"
+                      title="Editar"
+                    >
+                      <Edit className="h-3.5 w-3.5" />
+                    </button>
+                    <button
+                      onClick={() => deletePassword(item.id)}
+                      className="flex h-7 w-7 items-center justify-center rounded-lg text-muted-foreground transition-all hover:bg-destructive hover:text-destructive-foreground"
+                      title="Eliminar"
+                    >
+                      <Trash2 className="h-3.5 w-3.5" />
+                    </button>
+                  </div>
 
                   <div className="mb-3 pr-8">
                     <h4 className="mb-1 font-semibold text-foreground">{item.site}</h4>
