@@ -1,7 +1,7 @@
 "use client"
 // TODA LA PRTDE DEL LOGIN DONDE ESTA TODO SU DISEÑO Y LOGISTICA FUNCIONAL 
-import type React from "react"
-import { useState } from "react"
+import React from "react"
+import { useState, useEffect } from "react"
 import Dashboard from "@/components/Dashboard"
 import { ThemeProvider } from "@/components/ThemeContext"
 import { Lock, Shield } from "lucide-react"
@@ -11,6 +11,8 @@ export default function Page() {
   const [isRegisterMode, setIsRegisterMode] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showWelcomeScreen, setShowWelcomeScreen] = useState(true)
+  const [isTransitioning, setIsTransitioning] = useState(false)
 
   const [username, setUsername] = useState("")
   const [password, setPassword] = useState("")
@@ -114,6 +116,22 @@ export default function Page() {
     setPasswordHint("")
   }
 
+  const handleModeChange = async () => {
+    setIsTransitioning(true)
+    await new Promise(resolve => setTimeout(resolve, 300))
+    setIsRegisterMode(!isRegisterMode)
+    await new Promise(resolve => setTimeout(resolve, 100))
+    setIsTransitioning(false)
+  }
+
+  // Efecto para mostrar welcome screen al inicio
+  React.useEffect(() => {
+    const timer = setTimeout(() => {
+      setShowWelcomeScreen(false)
+    }, 4500) // AQUÍ están los 4.5 segundos (4500 milisegundos)
+    return () => clearTimeout(timer)
+  }, [])
+
   //  Pantalla de recuperar contraseña
   if (showForgotPassword) {
     return (
@@ -156,6 +174,32 @@ export default function Page() {
     )
   }
 
+  // Pantalla de bienvenida "Hello, friend"
+  if (showWelcomeScreen) {
+    return (
+      <div className="flex min-h-screen items-center justify-center px-4 animate-in fade-in duration-1000" style={{ background: 'linear-gradient(-45deg, #0a0a0a, #0a0a0a, #0a0a0a, #0a0a0a)', backgroundSize: '400% 400%' }}>
+        <div className="text-center animate-in slide-in-from-bottom duration-1000 delay-500">
+          <div className="mb-8 flex justify-center">
+            <div className="flex h-24 w-24 items-center justify-center rounded-full bg-primary shadow-2xl animate-pulse" style={{ boxShadow: '0 0 40px rgba(81, 221, 226, 0.8)' }}>
+              <Lock className="h-12 w-12 text-primary-foreground" />
+            </div>
+          </div>
+          <h1 className="text-6xl font-bold mb-4 animate-in slide-in-from-left duration-1000 delay-700">
+            <span className="text-white">Hello,</span> <span className="text-white">friend</span>
+          </h1>
+          <p className="text-xl text-muted-foreground animate-in slide-in-from-right duration-1000 delay-1000">
+            Bienvenido al gestor de contraseñas más seguro
+          </p>
+          <div className="mt-8 flex justify-center">
+            <div className="h-1 w-32 bg-primary/30 rounded-full overflow-hidden">
+              <div className="h-full bg-primary rounded-full animate-pulse" style={{ animation: 'loading 2s ease-in-out' }}></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   //  Pantalla de login / registro Diseño y todo con sus colores 
   if (!isLoggedIn) {
     return (
@@ -187,8 +231,10 @@ export default function Page() {
 
 
         
-        <form onSubmit={handleLogin} className="w-full max-w-md">
-          <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
+        <form onSubmit={handleLogin} className="w-full max-w-md animate-in slide-in-from-bottom duration-700">
+          <div className={`rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg transition-all duration-300 ${
+            isTransitioning ? 'scale-95 opacity-50' : 'scale-100 opacity-100'
+          }`} style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
             <div className="mb-6 flex justify-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-md">
                 <Lock className="h-8 w-8 text-primary-foreground" />
@@ -288,7 +334,7 @@ export default function Page() {
 
             <button
               type="button"
-              onClick={() => setIsRegisterMode(!isRegisterMode)}
+              onClick={handleModeChange}
               className="mb-3 w-full rounded-lg bg-muted px-4 py-3 font-semibold text-foreground shadow-sm transition-all hover:bg-muted/80 hover:shadow-md"
             >
               {isRegisterMode ? "Ya tengo cuenta" : "Crear cuenta"}
