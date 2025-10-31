@@ -487,20 +487,24 @@ const Dashboard: React.FC<DashboardProps> = ({ username, savedPasswords: initial
               </div>
             )}
           </div>
-          <button
-            onClick={() => setShowReports(true)}
-            className="flex items-center gap-2 rounded-lg border border-border bg-card px-10 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            <BarChart3 className="h-4 w-4" />
-            Reportes
-          </button>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="flex items-center gap-2 rounded-lg border border-border bg-card px-10 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
-          >
-            <Settings className="h-4 w-4" />
-            Configuración
-          </button>
+          {!showCategoriesDropdown && (
+            <>
+              <button
+                onClick={() => setShowReports(true)}
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-10 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <BarChart3 className="h-4 w-4" />
+                Reportes
+              </button>
+              <button
+                onClick={() => setShowSettings(true)}
+                className="flex items-center gap-2 rounded-lg border border-border bg-card px-10 py-2 text-sm font-medium text-foreground transition-colors hover:bg-accent"
+              >
+                <Settings className="h-4 w-4" />
+                Configuración
+              </button>
+            </>
+          )}
 
           {/* Barra de busqueda */}
           <div className="ml-auto flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-2">

@@ -4,13 +4,16 @@ import React from "react"
 import { useState, useEffect } from "react"
 import Dashboard from "@/components/Dashboard"
 import { ThemeProvider } from "@/components/ThemeContext"
-import { Lock, Shield } from "lucide-react"
+import { Lock, Shield, AlertTriangle } from "lucide-react"
 
 export default function Page() {
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [isRegisterMode, setIsRegisterMode] = useState(false)
   const [showForgotPassword, setShowForgotPassword] = useState(false)
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [showErrorModal, setShowErrorModal] = useState(false)
+  const [showPasswordMismatchModal, setShowPasswordMismatchModal] = useState(false)
+  const [showUserNotFoundModal, setShowUserNotFoundModal] = useState(false)
   const [showWelcomeScreen, setShowWelcomeScreen] = useState(true)
   const [isTransitioning, setIsTransitioning] = useState(false)
 
@@ -67,7 +70,7 @@ export default function Page() {
         return
       }
       if (password !== confirmPassword) {
-        alert("Las contraseñas no coinciden")
+        setShowPasswordMismatchModal(true)
         return
       }
 
@@ -82,7 +85,7 @@ export default function Page() {
       if (data.success) {
         setShowSuccessModal(true)
       } else {
-        alert(data.error || "Error al registrar usuario")
+        setShowErrorModal(true)
       }
     } else {
       // Llamada a la API de login
@@ -97,7 +100,7 @@ export default function Page() {
         setIsLoggedIn(true)
         localStorage.setItem("userId", data.user.id)
       } else {
-        alert(data.error || "Usuario o contraseña incorrectos")
+        setShowUserNotFoundModal(true)
       }
     }
   }
@@ -185,7 +188,7 @@ export default function Page() {
             </div>
           </div>
           <h1 className="text-6xl font-bold mb-4 animate-in slide-in-from-left duration-1000 delay-700">
-            <span className="text-white">Hello,</span> <span className="text-white">friend</span>
+            <span className="text-white">Hola,</span> <span className="text-white">Estimado(a)</span>
           </h1>
           <p className="text-xl text-muted-foreground animate-in slide-in-from-right duration-1000 delay-1000">
             Bienvenido al gestor de contraseñas más seguro
@@ -221,6 +224,81 @@ export default function Page() {
               </p>
               <button
                 onClick={handleCloseSuccessModal}
+                className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:brightness-110"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE ERROR AL REGISTRAR USUARIO */}
+        {showErrorModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-red-500 shadow-md">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+                Error al Registrar
+              </h2>
+              <p className="mb-6 text-center text-muted-foreground">
+                No se pudo crear la cuenta. Por favor, intenta nuevamente.
+              </p>
+              <button
+                onClick={() => setShowErrorModal(false)}
+                className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:brightness-110"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE CONTRASEÑAS NO COINCIDEN */}
+        {showPasswordMismatchModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-yellow-500 shadow-md">
+                  <Shield className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+                Contraseñas no Coinciden
+              </h2>
+              <p className="mb-6 text-center text-muted-foreground">
+                Las contraseñas ingresadas no son iguales. Por favor, verifica e intenta nuevamente.
+              </p>
+              <button
+                onClick={() => setShowPasswordMismatchModal(false)}
+                className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:brightness-110"
+              >
+                Continuar
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* MODAL DE USUARIO NO ENCONTRADO */}
+        {showUserNotFoundModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50">
+            <div className="rounded-2xl border-2 border-black-500 bg-card p-8 shadow-lg mx-4 max-w-md w-full" style={{ boxShadow: '0 0 25px rgba(81, 221, 226, 1)' }}>
+              <div className="mb-6 flex justify-center">
+                <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary shadow-md">
+                  <AlertTriangle className="h-8 w-8 text-white" />
+                </div>
+              </div>
+              <h2 className="mb-4 text-center text-2xl font-bold text-foreground">
+                Usuario no Encontrado
+              </h2>
+              <p className="mb-6 text-center text-muted-foreground">
+                El usuario o contraseña son incorrectos. Por favor, verifica tus datos.
+              </p>
+              <button
+                onClick={() => setShowUserNotFoundModal(false)}
                 className="w-full rounded-lg bg-primary px-4 py-3 font-semibold text-primary-foreground shadow-md transition-all hover:shadow-lg hover:brightness-110"
               >
                 Continuar
