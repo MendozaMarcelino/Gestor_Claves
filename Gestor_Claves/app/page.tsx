@@ -188,14 +188,14 @@ export default function Page() {
             </div>
           </div>
           <h1 className="text-6xl font-bold mb-4 animate-in slide-in-from-left duration-1000 delay-700">
-            <span className="text-white">Hola,</span> <span className="text-white">Estimado(a)</span>
+            <span className="text-white">BLACKBOX</span> <span className="text-white"></span>
           </h1>
           <p className="text-xl text-muted-foreground animate-in slide-in-from-right duration-1000 delay-1000">
-            Bienvenido al gestor de contraseñas más seguro
+           "Lo que solo tú puedes abrir"
           </p>
           <div className="mt-8 flex justify-center">
             <div className="h-1 w-32 bg-primary/30 rounded-full overflow-hidden">
-              <div className="h-full bg-primary rounded-full animate-pulse" style={{ animation: 'loading 2s ease-in-out' }}></div>
+              <div className="h-full bg-primary rounded-full animate-pulse" style={{ animation: 'loading 4s ease-in-out' }}></div>
             </div>
           </div>
         </div>
